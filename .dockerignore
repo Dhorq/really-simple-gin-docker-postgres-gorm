@@ -1,0 +1,35 @@
+# Git
+.git
+.gitignore
+
+# Go files
+*.go
+go.mod
+go.sum
+!*.go
+
+# Docker files
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Env files
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+
+# Docs
+*.md
+docs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
