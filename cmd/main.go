@@ -30,8 +30,12 @@ func main() {
 	todoSvc := service.NewTodoService(todoRepo)
 	todoHandler := handler.NewTodoHandler(todoSvc)
 
+	authRepo := repository.NewAuthRepository(db)
+	authSvc := service.NewAuthService(authRepo)
+	authHandler := handler.NewAuthHandler(authSvc)
+
 	r := gin.Default()
-	route.SetupRoutes(r, todoHandler)
+	route.SetupRoutes(r, todoHandler, authHandler)
 
 	log.Println("Server running on port 8080")
 	r.Run(":" + cfg.Port)

@@ -10,16 +10,23 @@ import (
 
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		tokenString := c.GetHeader("Authorization")
+		// tokenString := c.GetHeader("Authorization")
 
-		if tokenString == "" {
+		// if tokenString == "" {
+		// 	response.Error(c, http.StatusUnauthorized, "token is required")
+		// 	c.Abort()
+		// 	return
+		// }
+
+		// if len(tokenString) > 7 && tokenString[:7] == "Bearer " {
+		// 	tokenString = tokenString[7:]
+		// }
+
+		tokenString, err := c.Cookie("token") // pake cookie httpCookie
+		if err != nil || tokenString == "" {
 			response.Error(c, http.StatusUnauthorized, "token is required")
 			c.Abort()
 			return
-		}
-
-		if len(tokenString) > 7 && tokenString[:7] == "Bearer " {
-			tokenString = tokenString[7:]
 		}
 
 		claims, err := auth.ValidateToken(tokenString)

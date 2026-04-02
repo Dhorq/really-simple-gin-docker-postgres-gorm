@@ -80,8 +80,33 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
+	c.SetCookie(
+		"token", // name
+		token,   // value
+		86400,   // maxAge (24 jam dalam detik)
+		"/",     // path
+		"",      // domain
+		false,   // secure (false buat dev, true buat prod)
+		true,    // httpOnly
+	)
+
 	response.Success(c, gin.H{
-		"token": token,
-		"user":  user,
+		"user": user,
+	})
+}
+
+func (h *AuthHandler) Logout(c *gin.Context) {
+	c.SetCookie(
+		"token",
+		"",
+		-1, // maxAge -1 = hapus cookie
+		"/",
+		"",
+		false,
+		true,
+	)
+
+	response.Success(c, gin.H{
+		"message": "logout success",
 	})
 }
