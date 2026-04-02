@@ -13,10 +13,22 @@ func NewTodoRepository(db *gorm.DB) *TodoRepository {
 	return &TodoRepository{db: db}
 }
 
-func (r *TodoRepository) GetAll(userID uint) ([]*model.Todo, error) {
+func (r *TodoRepository) GetAll(userID uint, page, limit int, completed *bool) ([]*model.Todo, int64, error) {
 	var todos []*model.Todo
-	err := r.db.Where("user_id = ?", userID).Find(&todos).Error
-	return todos, err
+	var total int64
+
+	query := r.db.Model(&model.Todo{}).Where("user_id = ?", userID)
+
+	if completed != nil {
+		query = query.Where("completed = ?", *completed)
+	}
+
+	query.Count(&total)
+
+	offset := (page - 1) * limit
+	err := query.Offset(offset).Limit(limit).Order("created_at DESC").Find(&todos).Error
+
+	return todos, total, err
 }
 
 func (r *TodoRepository) Get(id uint, userID uint) (*model.Todo, error) {

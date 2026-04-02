@@ -22,12 +22,26 @@ func (h *TodoHandler) GetAll(c *gin.Context) {
 	userID, _ := c.Get("userID")
 	uid := userID.(uint)
 
-	todos, err := h.service.GetAll(uid)
+	var pagination model.Pagination
+	if err := c.ShouldBindQuery(&pagination); err != nil {
+		response.Error(c, http.StatusBadRequest, "invalid pagination params")
+		return
+	}
+	pagination.SetDefaults()
+
+	var completed *bool
+	if cp := c.Query("completed"); cp != "" {
+		b := cp == "true"
+		completed = &b
+	}
+
+	todos, total, err := h.service.GetAll(uid, pagination.Page, pagination.Limit, completed)
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
-	response.Success(c, todos)
+
+	response.SuccessPaginated(c, pagination.Page, pagination.Limit, total, todos)
 }
 
 func (h *TodoHandler) Get(c *gin.Context) {

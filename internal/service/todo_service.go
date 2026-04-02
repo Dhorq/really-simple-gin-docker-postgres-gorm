@@ -15,8 +15,8 @@ func NewTodoService(repo *repository.TodoRepository) *TodoService {
 	return &TodoService{repo: repo}
 }
 
-func (s *TodoService) GetAll(userID uint) ([]*model.Todo, error) {
-	return s.repo.GetAll(userID)
+func (s *TodoService) GetAll(userID uint, page, limit int, completed *bool) ([]*model.Todo, int64, error) {
+	return s.repo.GetAll(userID, page, limit, completed)
 }
 
 func (s *TodoService) Get(id uint, userID uint) (*model.Todo, error) {
