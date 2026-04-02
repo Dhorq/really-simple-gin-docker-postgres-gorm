@@ -15,12 +15,12 @@ func NewTodoService(repo *repository.TodoRepository) *TodoService {
 	return &TodoService{repo: repo}
 }
 
-func (s *TodoService) GetAll() ([]*model.Todo, error) {
-	return s.repo.GetAll()
+func (s *TodoService) GetAll(userID uint) ([]*model.Todo, error) {
+	return s.repo.GetAll(userID)
 }
 
-func (s *TodoService) Get(id uint) (*model.Todo, error) {
-	return s.repo.Get(id)
+func (s *TodoService) Get(id uint, userID uint) (*model.Todo, error) {
+	return s.repo.Get(id, userID)
 }
 
 func (s *TodoService) Create(todo *model.Todo) error {
@@ -37,6 +37,6 @@ func (s *TodoService) Update(id uint, title string, completed bool) (*model.Todo
 	return s.repo.Update(id, title, completed)
 }
 
-func (s *TodoService) Delete(id uint) error {
-	return s.repo.Delete(id)
+func (s *TodoService) Delete(id uint, userID uint) error {
+	return s.repo.Delete(id, userID)
 }

@@ -13,16 +13,16 @@ func NewTodoRepository(db *gorm.DB) *TodoRepository {
 	return &TodoRepository{db: db}
 }
 
-func (r *TodoRepository) GetAll() ([]*model.Todo, error) {
+func (r *TodoRepository) GetAll(userID uint) ([]*model.Todo, error) {
 	var todos []*model.Todo
-	err := r.db.Find(&todos).Error
+	err := r.db.Where("user_id = ?", userID).Find(&todos).Error
 	return todos, err
 }
 
-func (r *TodoRepository) Get(id uint) (*model.Todo, error) {
-	var todo *model.Todo
-	err := r.db.First(&todo).Error
-	return todo, err
+func (r *TodoRepository) Get(id uint, userID uint) (*model.Todo, error) {
+	var todo model.Todo
+	err := r.db.Where("id = ? AND user_id = ?", id, userID).First(&todo).Error
+	return &todo, err
 }
 
 func (r *TodoRepository) Create(todo *model.Todo) error {
@@ -44,10 +44,6 @@ func (r *TodoRepository) Update(id uint, title string, completed bool) (*model.T
 	return todo, nil
 }
 
-func (r *TodoRepository) Delete(id uint) error {
-	var todo model.Todo
-	if err := r.db.First(&todo, id).Error; err != nil {
-		return err
-	}
-	return r.db.Delete(&todo).Error
+func (r *TodoRepository) Delete(id uint, userID uint) error {
+	return r.db.Where("id = ? AND user_id = ?", id, userID).Delete(&model.Todo{}).Error
 }

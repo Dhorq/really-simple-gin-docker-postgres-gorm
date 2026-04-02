@@ -19,7 +19,10 @@ func NewTodoHandler(svc *service.TodoService) *TodoHandler {
 }
 
 func (h *TodoHandler) GetAll(c *gin.Context) {
-	todos, err := h.service.GetAll()
+	userID, _ := c.Get("userID")
+	uid := userID.(uint)
+
+	todos, err := h.service.GetAll(uid)
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, err.Error())
 		return
@@ -34,7 +37,10 @@ func (h *TodoHandler) Get(c *gin.Context) {
 		return
 	}
 
-	todo, err := h.service.Get(uint(id))
+	userID, _ := c.Get("userID")
+	uid := userID.(uint)
+
+	todo, err := h.service.Get(uint(id), uid)
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, err.Error())
 		return
@@ -99,7 +105,10 @@ func (h *TodoHandler) Delete(c *gin.Context) {
 		return
 	}
 
-	if err := h.service.Delete(uint(id)); err != nil {
+	userID, _ := c.Get("userID")
+	uid := userID.(uint)
+
+	if err := h.service.Delete(uint(id), uid); err != nil {
 		response.Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
