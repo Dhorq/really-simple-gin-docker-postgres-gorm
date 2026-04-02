@@ -8,10 +8,16 @@ import (
 )
 
 var jwtSecret = []byte(os.Getenv("JWT_SECRET"))
+var jwtRefreshSecret = []byte(os.Getenv("JWT_REFRESH_SECRET"))
 
 type Claims struct {
 	UserID uint   `json:"user_id"`
 	Email  string `json:"email"`
+	jwt.RegisteredClaims
+}
+
+type RefreshClaims struct {
+	UserID uint `json:"user_id"`
 	jwt.RegisteredClaims
 }
 
@@ -39,6 +45,35 @@ func ValidateToken(tokenString string) (*Claims, error) {
 	}
 
 	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
+		return claims, nil
+	}
+
+	return nil, jwt.ErrSignatureInvalid
+}
+
+func GenerateRefreshToken(userID uint) (string, error) {
+	claims := &RefreshClaims{
+		UserID: userID,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(7 * 24 * time.Hour)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString(jwtRefreshSecret)
+}
+
+func ValidateRefreshToken(tokenString string) (*RefreshClaims, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &RefreshClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return jwtRefreshSecret, nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if claims, ok := token.Claims.(*RefreshClaims); ok && token.Valid {
 		return claims, nil
 	}
 

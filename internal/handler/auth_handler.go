@@ -3,9 +3,7 @@ package handler
 import (
 	"net/http"
 
-	"github.com/Dhorq/really-simple-gin-docker-postgres-gorm/internal/model"
 	"github.com/Dhorq/really-simple-gin-docker-postgres-gorm/internal/service"
-	"github.com/Dhorq/really-simple-gin-docker-postgres-gorm/pkg/auth"
 	"github.com/Dhorq/really-simple-gin-docker-postgres-gorm/pkg/response"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
@@ -30,26 +28,13 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
+	user, err := h.service.Register(input.Email, input.Password)
 	if err != nil {
-		response.Error(c, http.StatusInternalServerError, "failed to hash password")
-		return
-	}
-
-	user := &model.User{
-		Email:    input.Email,
-		Password: string(hashedPassword),
-	}
-
-	if err := h.service.CreateUser(user); err != nil {
 		response.Error(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	response.Success(c, gin.H{
-		"message": "user created",
-		"user":    user,
-	})
+	response.Success(c, user)
 }
 
 func (h *AuthHandler) Login(c *gin.Context) {
@@ -63,9 +48,9 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	user, err := h.service.GetUserByEmail(input.Email)
+	user, accessToken, refreshToken, err := h.service.Login(input.Email, input.Password)
 	if err != nil {
-		response.Error(c, http.StatusUnauthorized, "invalid credentials")
+		response.Error(c, http.StatusUnauthorized, err.Error())
 		return
 	}
 
@@ -74,39 +59,69 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	token, err := auth.GenerateToken(user.ID, user.Email)
-	if err != nil {
-		response.Error(c, http.StatusInternalServerError, "failed to generate token")
-		return
-	}
-
-	c.SetCookie(
-		"token", // name
-		token,   // value
-		86400,   // maxAge (24 jam dalam detik)
-		"/",     // path
-		"",      // domain
-		false,   // secure (false buat dev, true buat prod)
-		true,    // httpOnly
-	)
+	h.setCookies(c, accessToken, refreshToken)
 
 	response.Success(c, gin.H{
 		"user": user,
 	})
 }
 
+func (h *AuthHandler) Refresh(c *gin.Context) {
+	refreshToken, err := c.Cookie("refresh_token")
+	if err != nil || refreshToken == "" {
+		response.Error(c, http.StatusUnauthorized, "refresh token required")
+		return
+	}
+
+	accessToken, newRefreshToken, err := h.service.RefreshToken(refreshToken)
+	if err != nil {
+		response.Error(c, http.StatusUnauthorized, err.Error())
+		return
+	}
+
+	h.setCookies(c, accessToken, newRefreshToken)
+
+	response.Success(c, gin.H{
+		"message": "token refreshed",
+	})
+}
+
 func (h *AuthHandler) Logout(c *gin.Context) {
+	userID, exists := c.Get("userID")
+	if exists {
+		h.service.Logout(userID.(uint))
+	}
+
+	h.clearCookies(c)
+
+	response.Success(c, gin.H{
+		"message": "logout success",
+	})
+}
+
+func (h *AuthHandler) setCookies(c *gin.Context, accessToken, refreshToken string) {
 	c.SetCookie(
-		"token",
-		"",
-		-1, // maxAge -1 = hapus cookie
+		"access_token",
+		accessToken,
+		900, // 15 menit
 		"/",
 		"",
 		false,
 		true,
 	)
 
-	response.Success(c, gin.H{
-		"message": "logout success",
-	})
+	c.SetCookie(
+		"refresh_token",
+		refreshToken,
+		604800, // 7 hari
+		"/",
+		"",
+		false,
+		true,
+	)
+}
+
+func (h *AuthHandler) clearCookies(c *gin.Context) {
+	c.SetCookie("access_token", "", -1, "/", "", false, true)
+	c.SetCookie("refresh_token", "", -1, "/", "", false, true)
 }
