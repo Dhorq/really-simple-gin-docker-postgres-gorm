@@ -125,3 +125,19 @@ func (h *AuthHandler) clearCookies(c *gin.Context) {
 	c.SetCookie("access_token", "", -1, "/", "", false, true)
 	c.SetCookie("refresh_token", "", -1, "/", "", false, true)
 }
+
+func (h *AuthHandler) Me(c *gin.Context) {
+	userID, exists := c.Get("userID")
+	if !exists {
+		response.Error(c, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+
+	user, err := h.service.GetUserByID(userID.(uint))
+	if err != nil {
+		response.Error(c, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+
+	response.Success(c, user)
+}

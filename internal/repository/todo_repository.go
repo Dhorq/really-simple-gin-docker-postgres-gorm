@@ -50,7 +50,7 @@ func (r *TodoRepository) Update(id uint, title string, completed bool) (*model.T
 	todo.Title = title
 	todo.Completed = completed
 
-	if err := r.db.Save(&todo).Error; err != nil {
+	if err := r.db.Model(&todo).Updates(&todo).Error; err != nil {
 		return nil, err
 	}
 	return todo, nil

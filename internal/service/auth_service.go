@@ -103,3 +103,7 @@ func (s *AuthService) RefreshToken(refreshToken string) (string, string, error) 
 func (s *AuthService) Logout(userID uint) error {
 	return s.repo.DeleteRefreshToken(userID)
 }
+
+func (s *AuthService) GetUserByID(id uint) (*model.User, error) {
+	return s.repo.GetUserByID(id)
+}
