@@ -55,7 +55,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(input.Password)); err != nil {
-		response.Error(c, http.StatusUnauthorized, "invalid credentials")
+		response.Error(c, http.StatusUnauthorized, "invalid password")
 		return
 	}
 

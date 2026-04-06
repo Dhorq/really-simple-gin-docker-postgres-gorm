@@ -24,7 +24,7 @@ func main() {
 		log.Fatal("Failed to connect to database")
 	}
 
-	database.AutoMigrate(db, &model.Todo{})
+	database.AutoMigrate(db, &model.Todo{}, &model.User{})
 
 	todoRepo := repository.NewTodoRepository(db)
 	todoSvc := service.NewTodoService(todoRepo)
@@ -37,6 +37,6 @@ func main() {
 	r := gin.Default()
 	route.SetupRoutes(r, todoHandler, authHandler)
 
-	log.Println("Server running on port 8080")
+	log.Println("Server running")
 	r.Run(":" + cfg.Port)
 }

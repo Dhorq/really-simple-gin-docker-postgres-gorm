@@ -22,7 +22,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		// 	tokenString = tokenString[7:]
 		// }
 
-		tokenString, err := c.Cookie("token") // pake cookie httpCookie
+		tokenString, err := c.Cookie("access_token") // pake cookie httpCookie
 		if err != nil || tokenString == "" {
 			response.Error(c, http.StatusUnauthorized, "token is required")
 			c.Abort()

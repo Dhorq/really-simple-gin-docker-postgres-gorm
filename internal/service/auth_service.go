@@ -43,11 +43,11 @@ func (s *AuthService) Register(email, password string) (*model.User, error) {
 func (s *AuthService) Login(email, password string) (*model.User, string, string, error) {
 	user, err := s.repo.GetUserByEmail(email)
 	if err != nil {
-		return nil, "", "", errors.New("invalid credentials")
+		return nil, "", "", errors.New("invalid email")
 	}
 
-	if user.Password != password {
-		return nil, "", "", errors.New("invalid credentials")
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
+		return nil, "", "", errors.New("invalid password")
 	}
 
 	accessToken, err := auth.GenerateToken(user.ID, user.Email)

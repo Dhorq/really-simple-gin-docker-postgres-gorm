@@ -4,8 +4,6 @@
 
 # Go files
 *.go
-go.mod
-go.sum
 !*.go
 
 # Docker files
@@ -14,7 +12,6 @@ docker-compose.yml
 .dockerignore
 
 # Env files
-.env
 .env.local
 .env.*.local
 
